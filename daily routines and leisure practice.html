@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日常習慣與休閒活動 - 英文單字挑戰</title>
+    <!-- 引入 Tailwind CSS 確保樣式美觀 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Poppins:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+        }
+        /* 增加平滑過渡效果 */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex items-center justify-center">
+
+    <div id="app" class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden fade-in">
+        <!-- 頂部標題區 -->
+        <div class="bg-indigo-600 p-6 text-white text-center">
+            <h1 class="text-2xl md:text-3xl font-bold tracking-wide">單字學習挑戰賽</h1>
+            <p class="mt-2 opacity-90 text-sm md:text-base">主題：日常習慣及休閒活動</p>
+        </div>
+
+        <!-- 初始畫面：難度選擇 -->
+        <div id="setup-screen" class="p-8">
+            <h2 class="text-xl font-semibold mb-6 text-gray-700 text-center">請選擇挑戰難度：</h2>
+            <div class="grid gap-4">
+                <button onclick="startGame('basic')" class="flex items-center justify-between p-5 bg-green-50 border-2 border-green-200 rounded-2xl hover:bg-green-100 hover:border-green-400 transition-all group">
+                    <div class="text-left">
+                        <span class="block text-lg font-bold text-green-700">基礎版 (聽力挑戰)</span>
+                        <span class="text-sm text-green-600">聽單字發音，選出正確單字</span>
+                    </div>
+                    <span class="text-2xl group-hover:scale-125 transition-transform">🎧</span>
+                </button>
+                <button onclick="startGame('upgrade')" class="flex items-center justify-between p-5 bg-blue-50 border-2 border-blue-200 rounded-2xl hover:bg-blue-100 hover:border-blue-400 transition-all group">
+                    <div class="text-left">
+                        <span class="block text-lg font-bold text-blue-700">升級版 (拼寫挑戰)</span>
+                        <span class="text-sm text-blue-600">看中文解釋，拼寫正確英文</span>
+                    </div>
+                    <span class="text-2xl group-hover:scale-125 transition-transform">✍️</span>
+                </button>
+                <button onclick="startGame('advanced')" class="flex items-center justify-between p-5 bg-purple-50 border-2 border-purple-200 rounded-2xl hover:bg-purple-100 hover:border-purple-400 transition-all group">
+                    <div class="text-left">
+                        <span class="block text-lg font-bold text-purple-700">進階版 (情境應用)</span>
+                        <span class="text-sm text-purple-600">根據例句填寫適合的單字</span>
+                    </div>
+                    <span class="text-2xl group-hover:scale-125 transition-transform">📚</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 遊戲主畫面 -->
+        <div id="game-screen" class="hidden p-8">
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="exitGame()" class="text-gray-400 hover:text-indigo-600 text-sm font-medium transition-colors">← 返回主選單</button>
+                <div class="text-indigo-600 font-bold bg-indigo-50 px-4 py-1 rounded-full">
+                    得分: <span id="score">0</span>
+                </div>
+            </div>
+
+            <!-- 進度條 -->
+            <div class="mb-8">
+                <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div id="progress-bar" class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="text-center text-xs text-gray-400 mt-2 font-semibold">
+                    第 <span id="current-index">1</span> / 10 題
+                </div>
+            </div>
+
+            <!-- 題目顯示區 -->
+            <div id="question-container" class="text-center mb-6">
+                <!-- 由 JavaScript 動態生成內容 -->
+            </div>
+
+            <!-- 回答區 -->
+            <div id="answer-section" class="mt-8">
+                <!-- 由 JavaScript 動態生成按鈕或輸入框 -->
+            </div>
+
+            <!-- 回饋顯示 -->
+            <div id="feedback" class="mt-6 hidden p-4 rounded-xl text-center font-bold animate-bounce">
+            </div>
+
+            <!-- 下一題按鈕 -->
+            <button id="next-btn" onclick="nextQuestion()" class="hidden w-full mt-6 bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 hover:-translate-y-1 active:translate-y-0 transition-all">
+                下一題
+            </button>
+        </div>
+
+        <!-- 結算畫面 -->
+        <div id="result-screen" class="hidden p-12 text-center">
+            <div class="text-7xl mb-6">🏆</div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">挑戰完成！</h2>
+            <p class="text-xl text-gray-600 mb-8">太棒了！你的總得分是：<span id="final-score" class="text-indigo-600 font-bold text-3xl">0</span> / 100</p>
+            <button onclick="exitGame()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition-all">
+                再次挑戰
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 單字資料庫
+        const vocabulary = [
+            { word: "get up", zh: "起床", type: "", sentence: "I ___ at 6:30 every morning." },
+            { word: "teeth", zh: "牙齒", type: "n.", sentence: "Toby brushes his ___ every night." },
+            { word: "face", zh: "臉", type: "n.", sentence: "Helen has a beautiful ___." },
+            { word: "exercise", zh: "運動", type: "v; n", sentence: "Let’s ___ in the gym." },
+            { word: "breakfast", zh: "早餐", type: "n.", sentence: "Susan has milk tea and a sandwich for ___ every day." },
+            { word: "bath", zh: "泡澡; 洗澡", type: "n.", sentence: "My brother takes a ___ every morning." },
+            { word: "homework", zh: "家庭作業", type: "n.", sentence: "Fred is doing his ___ in his room." },
+            { word: "baseball", zh: "棒球", type: "n.", sentence: "I watch ___ games on weekends." },
+            { word: "soccer", zh: "足球", type: "n.", sentence: "Frank does not like ___." },
+            { word: "video game", zh: "電玩遊戲", type: "n.", sentence: "David and his friends are playing ___s in the living room." }
+        ];
+
+        let currentMode = '';
+        let currentIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+
+        // 語音發音功能 (使用瀏覽器內建 Web Speech API)
+        function speak(text) {
+            // 先取消之前的發音
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85; // 稍慢的速度適合學習
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 開始遊戲
+        function startGame(mode) {
+            currentMode = mode;
+            currentIndex = 0;
+            score = 0;
+            // 隨機打亂題目順序
+            shuffledQuestions = [...vocabulary].sort(() => Math.random() - 0.5);
+            
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('fade-in');
+            
+            updateUI();
+            renderQuestion();
+        }
+
+        // 返回主選單
+        function exitGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('setup-screen').classList.add('fade-in');
+        }
+
+        // 更新介面狀態
+        function updateUI() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('current-index').innerText = currentIndex + 1;
+            document.getElementById('progress-bar').style.width = `${(currentIndex / 10) * 100}%`;
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+        }
+
+        // 生成題目內容
+        function renderQuestion() {
+            const container = document.getElementById('question-container');
+            const answerSection = document.getElementById('answer-section');
+            const q = shuffledQuestions[currentIndex];
+            
+            container.innerHTML = '';
+            answerSection.innerHTML = '';
+
+            if (currentMode === 'basic') {
+                // 基礎版：聽力選擇
+                container.innerHTML = `
+                    <button onclick="speak('${q.word}')" class="bg-indigo-100 p-8 rounded-full mb-4 hover:bg-indigo-200 transition-all shadow-md group">
+                        <span class="text-5xl text-indigo-600 block group-active:scale-90 transition-transform">🔊</span>
+                    </button>
+                    <p class="text-indigo-400 font-medium">點擊圖示聽發音，選出正確單字</p>
+                `;
+                
+                // 隨機生成干擾選項
+                const choices = [q.word];
+                while(choices.length < 4) {
+                    const randomWord = vocabulary[Math.floor(Math.random() * vocabulary.length)].word;
+                    if(!choices.includes(randomWord)) choices.push(randomWord);
+                }
+                choices.sort(() => Math.random() - 0.5);
+
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4';
+                choices.forEach(choice => {
+                    grid.innerHTML += `
+                        <button onclick="checkAnswer('${choice}')" class="p-4 border-2 border-gray-200 rounded-2xl hover:border-indigo-600 hover:bg-indigo-50 font-bold text-gray-700 transition-all">
+                            ${choice}
+                        </button>
+                    `;
+                });
+                answerSection.appendChild(grid);
+                setTimeout(() => speak(q.word), 300);
+
+            } else if (currentMode === 'upgrade') {
+                // 升級版：中翻英
+                container.innerHTML = `
+                    <div class="text-5xl font-extrabold text-gray-800 mb-2">${q.zh}</div>
+                    <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg font-bold text-sm">${q.type}</div>
+                `;
+                
+                answerSection.innerHTML = `
+                    <div class="relative">
+                        <input type="text" id="userInput" autocomplete="off" placeholder="在此輸入英文..." class="w-full p-5 border-2 border-gray-200 rounded-2xl text-center text-2xl focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 outline-none transition-all">
+                    </div>
+                    <button onclick="checkTextAnswer()" class="w-full mt-4 bg-gray-800 text-white py-4 rounded-2xl font-bold hover:bg-black shadow-lg transition-all">確認答案</button>
+                `;
+                document.getElementById('userInput').focus();
+                
+            } else if (currentMode === 'advanced') {
+                // 進階版：例句填充
+                container.innerHTML = `
+                    <div class="text-xl md:text-2xl leading-relaxed text-gray-700 bg-gray-50 p-8 rounded-3xl italic shadow-inner border border-gray-100">
+                        "${q.sentence.replace('___', '<span class="border-b-4 border-indigo-600 px-3 text-indigo-600 font-bold">?</span>')}"
+                    </div>
+                    <p class="mt-6 text-indigo-400 font-bold">提示：${q.zh}</p>
+                `;
+                
+                answerSection.innerHTML = `
+                    <input type="text" id="userInput" autocomplete="off" placeholder="填入空格中的單字..." class="w-full p-5 border-2 border-gray-200 rounded-2xl text-center text-2xl focus:border-indigo-600 outline-none transition-all shadow-sm">
+                    <button onclick="checkTextAnswer()" class="w-full mt-4 bg-gray-800 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all shadow-lg">提交挑戰</button>
+                `;
+                document.getElementById('userInput').focus();
+            }
+        }
+
+        // 檢查按鈕選擇
+        function checkAnswer(selected) {
+            const correct = shuffledQuestions[currentIndex].word;
+            showFeedback(selected === correct);
+        }
+
+        // 檢查文字輸入
+        function checkTextAnswer() {
+            const userInput = document.getElementById('userInput');
+            if(!userInput || userInput.disabled) return;
+            
+            const input = userInput.value.trim().toLowerCase();
+            const correct = shuffledQuestions[currentIndex].word.toLowerCase();
+            showFeedback(input === correct);
+        }
+
+        // 顯示對錯回饋
+        function showFeedback(isCorrect) {
+            const feedback = document.getElementById('feedback');
+            const q = shuffledQuestions[currentIndex];
+            
+            feedback.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+            
+            if (isCorrect) {
+                score += 10;
+                feedback.innerText = "答對了！太厲害了！ ✨";
+                feedback.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                feedback.innerHTML = `可惜答錯了 💡<br><span class="text-sm">正確答案是: <span class="font-black text-lg underline">${q.word}</span></span>`;
+                feedback.classList.add('bg-red-100', 'text-red-700');
+            }
+
+            document.getElementById('score').innerText = score;
+            document.getElementById('next-btn').classList.remove('hidden');
+            
+            // 回答後禁用所有輸入
+            const buttons = document.querySelectorAll('#answer-section button');
+            buttons.forEach(b => b.disabled = true);
+            const input = document.querySelector('#userInput');
+            if(input) input.disabled = true;
+
+            // 答對時自動發音，加深印象
+            if(isCorrect) speak(q.word);
+        }
+
+        // 下一題
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < 10) {
+                updateUI();
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // 顯示最後結果
+        function showResults() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('fade-in');
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('progress-bar').style.width = `100%`;
+        }
+
+        // 監聽 Enter 鍵，提升輸入體驗
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const nextBtn = document.getElementById('next-btn');
+                // 如果「下一題」按鈕出現，按 Enter 下一題
+                if (nextBtn && !nextBtn.classList.contains('hidden')) {
+                    nextQuestion();
+                } else {
+                    // 否則檢查輸入框答案
+                    checkTextAnswer();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
